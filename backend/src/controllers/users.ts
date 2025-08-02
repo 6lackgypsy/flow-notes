@@ -20,7 +20,7 @@ export const getAuthenticatedUser: RequestHandler = async (req, res, next) => {
   }
 }
 
-type SignUpBody = {
+interface SignUpBody {
   username?: string
   email?: string
   password?: string
@@ -70,7 +70,7 @@ export const signUp: RequestHandler<
   }
 }
 
-type LoginBody = {
+interface LoginBody {
   username?: string
   password?: string
 }

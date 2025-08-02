@@ -6,7 +6,7 @@ import styles from "../styles/Note.module.css"
 import utilStyles from "../styles/utils.module.css"
 import { formatDate } from "../utils/formatDate"
 
-type NoteProps = {
+interface NoteProps {
   note: NoteModel
   onNoteClicked: (note: NoteModel) => void
   onDeleteNote: (note: NoteModel) => void

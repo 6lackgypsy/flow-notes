@@ -1,9 +1,10 @@
-import { Button, Form, FormGroup, Modal } from "react-bootstrap"
+import { Button, Form, Modal } from "react-bootstrap"
 import { useForm } from "react-hook-form"
 import type { Note } from "../models/notes"
 import { createNote, updateNote, type NoteInput } from "../network/notesApi"
+import TextInputField from "./form/TextInputField"
 
-type AddEditNoteDialogProps = {
+interface AddEditNoteDialogProps {
   noteToEdit?: Note
   onDismiss: () => void
   onNoteSaved: (note: Note) => void
@@ -44,27 +45,23 @@ const AddEditNoteDialog = ({
       </Modal.Header>
       <Modal.Body>
         <Form id="addEditNoteForm" onSubmit={handleSubmit(onSubmit)}>
-          <FormGroup className="mb-3">
-            <Form.Label>Title</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="E.g. My First Note"
-              {...register("title", { required: "Required" })}
-              isInvalid={!!errors.title}
-            />
-            <Form.Control.Feedback type="invalid">
-              {errors.title?.message}
-            </Form.Control.Feedback>
-          </FormGroup>
-          <FormGroup className="mb-3">
-            <Form.Label>Text</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={5}
-              placeholder="E.g. Keeping notes is one of the best ways to start living an organized and intentional lifestyle"
-              {...register("text")}
-            />
-          </FormGroup>
+          <TextInputField
+            name="title"
+            label="Title"
+            type="text"
+            placeholder="E.g. My First Note"
+            register={register}
+            registerOptions={{ required: "Required" }}
+            error={errors.title}
+          />
+          <TextInputField
+            name="text"
+            label="Text"
+            as="textarea"
+            rows={5}
+            placeholder="E.g. Keeping notes is one of the best ways to start living an organized and intentional lifestyle"
+            register={register}
+          />
         </Form>
       </Modal.Body>
       <Modal.Footer>

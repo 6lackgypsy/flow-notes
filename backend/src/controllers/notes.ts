@@ -34,6 +34,11 @@ export const getNote: RequestHandler = async (req, res, next) => {
   }
 }
 
+interface CreateNoteBody {
+  title?: string // So we can get through to check if the usually actually sent a title and handle the error
+  text?: string
+}
+
 export const createNote: RequestHandler<
   unknown,
   unknown,
@@ -53,6 +58,15 @@ export const createNote: RequestHandler<
   } catch (error) {
     next(error)
   }
+}
+
+interface UpdateNoteBody {
+  title?: string
+  text?: string
+}
+
+interface UpdateParams {
+  id: string
 }
 
 export const updateNote: RequestHandler<
