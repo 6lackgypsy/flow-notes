@@ -1,5 +1,7 @@
-import { Button, Form, Modal } from "react-bootstrap"
+import { useState } from "react"
+import { Alert, Button, Form, Modal } from "react-bootstrap"
 import { useForm } from "react-hook-form"
+import { UnauthorizedError } from "../errors/httpErrors"
 import type { User } from "../models/user"
 import { login, type LoginCredentials } from "../network/notesApi"
 import utilStyles from "../styles/utils.module.css"
@@ -11,6 +13,8 @@ interface LoginModalProps {
 }
 
 const LoginModal = ({ onDismiss, onLoginSuccessful }: LoginModalProps) => {
+  const [errorText, setErrorText] = useState<string | null>(null)
+
   const {
     register,
     handleSubmit,
@@ -23,6 +27,8 @@ const LoginModal = ({ onDismiss, onLoginSuccessful }: LoginModalProps) => {
 
       onLoginSuccessful(user)
     } catch (error) {
+      if (error instanceof UnauthorizedError) setErrorText(error.message)
+
       console.log(error)
     }
   }
@@ -33,6 +39,7 @@ const LoginModal = ({ onDismiss, onLoginSuccessful }: LoginModalProps) => {
         <Modal.Title>Login</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        {errorText && <Alert variant="danger">{errorText}</Alert>}
         <Form onSubmit={handleSubmit(onSubmit)}>
           <TextInputField
             type="text"

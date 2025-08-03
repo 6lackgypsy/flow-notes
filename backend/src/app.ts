@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from "express"
 import session from "express-session"
 import createHttpError, { isHttpError } from "http-errors"
 import morgan from "morgan"
+import { requiresAuth } from "./middleware/auth"
 import noteRoutes from "./routes/notes"
 import userRoutes from "./routes/users"
 import env from "./util/validateEnv"
@@ -24,7 +25,7 @@ app.use(
 )
 
 app.use("/api/users", userRoutes)
-app.use("/api/notes", noteRoutes)
+app.use("/api/notes", requiresAuth, noteRoutes)
 
 app.use((req, res, next) => {
   next(createHttpError(404, "Page not found"))

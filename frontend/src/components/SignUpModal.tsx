@@ -1,5 +1,7 @@
-import { Button, Form, Modal } from "react-bootstrap"
+import { useState } from "react"
+import { Alert, Button, Form, Modal } from "react-bootstrap"
 import { useForm } from "react-hook-form"
+import { ConflictError } from "../errors/httpErrors"
 import type { User } from "../models/user"
 import { signUp, type SignUpCredentials } from "../network/notesApi"
 import utilStyles from "../styles/utils.module.css"
@@ -11,6 +13,8 @@ interface SignUpModalProps {
 }
 
 const SignUpModal = ({ onDismiss, onSignUpSuccessful }: SignUpModalProps) => {
+  const [errorText, setErrorText] = useState<string | null>(null)
+
   const {
     register,
     handleSubmit,
@@ -23,6 +27,8 @@ const SignUpModal = ({ onDismiss, onSignUpSuccessful }: SignUpModalProps) => {
 
       onSignUpSuccessful(newUser)
     } catch (error) {
+      if (error instanceof ConflictError) setErrorText(error.message)
+
       console.log(error)
     }
   }
@@ -33,6 +39,7 @@ const SignUpModal = ({ onDismiss, onSignUpSuccessful }: SignUpModalProps) => {
         <Modal.Title>Sign Up</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        {errorText && <Alert variant="danger">{errorText}</Alert>}
         <Form onSubmit={handleSubmit(onSubmit)}>
           <TextInputField
             type="text"

@@ -69,7 +69,7 @@ const NotesPageLoggedInView = () => {
       {!notesLoading && !showNotesLoadingError && (
         <>
           {notes.length > 0 ? (
-            <Row xs={1} md={2} xl={3} className={`g-4 ${styles.noteGrid}`}>
+            <Row xs={1} md={2} xl={3} className={`g-4 ${styles.notesGrid}`}>
               {notes?.map((note) => (
                 <Col key={note._id} className="g-4">
                   <Note

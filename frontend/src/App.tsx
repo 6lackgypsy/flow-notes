@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react"
 import { Container } from "react-bootstrap"
+import { BrowserRouter, Route, Routes } from "react-router-dom"
 import LoginModal from "./components/LoginModal"
-import NavBar from "./components/Navbar"
-import NotesPageLoggedInView from "./components/NotesPageLoggedInView"
-import NotesPageLoggedOutView from "./components/NotesPageLoggedOutView"
+import NavBar from "./components/NavBar"
 import SignUpModal from "./components/SignUpModal"
 import type { User } from "./models/user"
 import { getLoggedInUser } from "./network/notesApi"
-import styles from "./styles/NotesPage.module.css"
+import NotesPage from "./pages/NotesPage"
+import NotFoundPage from "./pages/NotFoundPage"
+import PrivacyPage from "./pages/PrivacyPage"
+import styles from "./styles/App.module.css"
 
 const App = () => {
-  const [loggedInInUser, setLoggedInInUser] = useState<User | null>(null)
+  const [loggedInUser, setLoggedInUser] = useState<User | null>(null)
   const [showSignUpModal, setShowSignUpModal] = useState(false)
   const [showLoginModal, setShowLoginModal] = useState(false)
 
@@ -19,7 +21,7 @@ const App = () => {
       try {
         const user = await getLoggedInUser()
 
-        setLoggedInInUser(user)
+        setLoggedInUser(user)
       } catch (error) {
         console.log(error)
       }
@@ -29,39 +31,44 @@ const App = () => {
   }, [])
 
   return (
-    <div>
-      <NavBar
-        loggedInUser={loggedInInUser}
-        onLoginClicked={() => setShowLoginModal(true)}
-        onSignUpClicked={() => setShowSignUpModal(true)}
-        onLogoutSuccessful={() => setLoggedInInUser(null)}
-      />
-      <Container className={styles.notesPage}>
-        {loggedInInUser ? (
-          <NotesPageLoggedInView />
-        ) : (
-          <NotesPageLoggedOutView />
+    <BrowserRouter>
+      <div>
+        <NavBar
+          loggedInUser={loggedInUser}
+          onLoginClicked={() => setShowLoginModal(true)}
+          onSignUpClicked={() => setShowSignUpModal(true)}
+          onLogoutSuccessful={() => setLoggedInUser(null)}
+        />
+        <Container className={styles.pageContainer}>
+          <Routes>
+            <Route
+              path="/"
+              element={<NotesPage loggedInUser={loggedInUser} />}
+            />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/*" element={<NotFoundPage />} />
+          </Routes>
+        </Container>
+        {showSignUpModal && (
+          <SignUpModal
+            onDismiss={() => setShowSignUpModal(false)}
+            onSignUpSuccessful={(user) => {
+              setLoggedInUser(user)
+              setShowSignUpModal(false)
+            }}
+          />
         )}
-      </Container>
-      {showSignUpModal && (
-        <SignUpModal
-          onDismiss={() => setShowSignUpModal(false)}
-          onSignUpSuccessful={(user) => {
-            setLoggedInInUser(user)
-            setShowSignUpModal(false)
-          }}
-        />
-      )}
-      {showLoginModal && (
-        <LoginModal
-          onDismiss={() => setShowLoginModal(false)}
-          onLoginSuccessful={(user) => {
-            setLoggedInInUser(user)
-            setShowLoginModal(false)
-          }}
-        />
-      )}
-    </div>
+        {showLoginModal && (
+          <LoginModal
+            onDismiss={() => setShowLoginModal(false)}
+            onLoginSuccessful={(user) => {
+              setLoggedInUser(user)
+              setShowLoginModal(false)
+            }}
+          />
+        )}
+      </div>
+    </BrowserRouter>
   )
 }
 

@@ -3,10 +3,15 @@ import createHttpError from "http-errors"
 import mongoose from "mongoose"
 import { CreateNoteBody, UpdateNoteBody, UpdateParams } from "../lib/types/note"
 import Note from "../models/note"
+import { assertIsDefined } from "../util/assertIsDefined"
 
 export const getNotes: RequestHandler = async (req, res, next) => {
+  const authenticatedUserId = req.session.userId
+
   try {
-    const notes = await Note.find().exec()
+    assertIsDefined(authenticatedUserId)
+
+    const notes = await Note.find({ userId: authenticatedUserId }).exec()
 
     res.status(200).json(notes)
   } catch (error) {
@@ -16,17 +21,20 @@ export const getNotes: RequestHandler = async (req, res, next) => {
 
 export const getNote: RequestHandler = async (req, res, next) => {
   const { id } = req.params
+  const authenticatedUserId = req.session.userId
 
   try {
-    if (!mongoose.isValidObjectId(id)) {
+    assertIsDefined(authenticatedUserId)
+
+    if (!mongoose.isValidObjectId(id))
       throw createHttpError(400, "Invalid note Id")
-    }
 
     const note = await Note.findById(id).exec()
 
-    if (!note) {
-      throw createHttpError(404, "Note not found")
-    }
+    if (!note) throw createHttpError(404, "Note not found")
+
+    if (!note.userId.equals(authenticatedUserId))
+      throw createHttpError(401, "You cannot access this note")
 
     res.status(200).json(note)
   } catch (error) {
@@ -46,13 +54,18 @@ export const createNote: RequestHandler<
   unknown
 > = async (req, res, next) => {
   const { title, text } = req.body
+  const authenticatedUserId = req.session.userId
 
   try {
-    if (!title) {
-      throw createHttpError(400, "Note must have a title")
-    }
+    assertIsDefined(authenticatedUserId)
 
-    const newNote = await Note.create({ title, text })
+    if (!title) throw createHttpError(400, "Note must have a title")
+
+    const newNote = await Note.create({
+      title,
+      text,
+      userId: authenticatedUserId
+    })
 
     res.status(201).json(newNote)
   } catch (error) {
@@ -77,21 +90,22 @@ export const updateNote: RequestHandler<
 > = async (req, res, next) => {
   const { id } = req.params
   const { title, text } = req.body
+  const authenticatedUserId = req.session.userId
 
   try {
-    if (!mongoose.isValidObjectId(id)) {
-      throw createHttpError(400, "Invalid note Id")
-    }
+    assertIsDefined(authenticatedUserId)
 
-    if (!title) {
-      throw createHttpError(400, "Note must have a title")
-    }
+    if (!mongoose.isValidObjectId(id))
+      throw createHttpError(400, "Invalid note Id")
+
+    if (!title) throw createHttpError(400, "Note must have a title")
 
     const note = await Note.findById(id).exec()
 
-    if (!note) {
-      throw createHttpError(404, "Note not found")
-    }
+    if (!note) throw createHttpError(404, "Note not found")
+
+    if (!note.userId.equals(authenticatedUserId))
+      throw createHttpError(401, "You cannot access this note")
 
     note.title = title
     note.text = text
@@ -106,8 +120,11 @@ export const updateNote: RequestHandler<
 
 export const deleteNote: RequestHandler = async (req, res, next) => {
   const { id } = req.params
+  const authenticatedUserId = req.session.userId
 
   try {
+    assertIsDefined(authenticatedUserId)
+
     if (!mongoose.isValidObjectId(id)) {
       throw createHttpError(400, "Invalid note Id")
     }
@@ -117,6 +134,9 @@ export const deleteNote: RequestHandler = async (req, res, next) => {
     if (!note) {
       throw createHttpError(404, "Note not found")
     }
+
+    if (!note.userId.equals(authenticatedUserId))
+      throw createHttpError(401, "You cannot access this note")
 
     await note.deleteOne()
 
